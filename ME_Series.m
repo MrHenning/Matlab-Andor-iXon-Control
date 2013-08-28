@@ -81,14 +81,15 @@ end
 
 ret = SetExposureTime(exposureTime);                    %   Set exposure time in second
 ret = SetReadMode(4);                                   %   Set read mode; 4 for Image
-ret = SetShutterEx(1,1,0,0,1);                          %   Set external and internal shutter to open
+ret = SetShutterEx(1,1,27,27,1);                          %   Set external and internal shutter to open
 
 [ret,ExposureT,AccumulationT,KineticT]=GetAcquisitionTimings;    %   Get acquisition setting
 fprintf('Acquisition Timings:\n  Exposure: %f \nAcc. Cycle Time: %f \nKinetic Cycle Time: %f \n',ExposureT,AccumulationT,KineticT);
 
 
+%% Acquisition of images
 
-%% wait for camera to be ready
+% wait for camera to be ready
 [ret,gstatus] = AndorGetStatus;                         %   Make sure the system is at idle waiting for instruction
 while(gstatus ~= 20073)                                 %   20073=DRV_IDLE
     pause(0.1);
@@ -115,7 +116,7 @@ FS = stoploop({'Stop me'}) ;                            % Stop Button
 tic;
 
 while ~FS.Stop()
-    toc;                        % display elapsed time
+    toc;                        
     tic;
     
     [ret] = WaitForAcquisition;
@@ -128,8 +129,6 @@ while ~FS.Stop()
 
     imagesc(ResultArray);
     axis image;
-    
-%     pause(0.1);
 
     [ret, totalNumberImagesAcquired] = GetTotalNumberImagesAcquired;  %   get indeces of the images that have not been retrieved from internal camera memory yet
 end
@@ -142,11 +141,14 @@ else
     disp('Error with aborting acquisition');
 end
 
-%% shut down camera
-% pause(3);
-ret = SetShutterEx(1,2,27,27,2);                        %   Set external and internal shutter to open
-[ret]=AndorShutDown;
 
+%% shut down camera
+pause(3);
+ret = SetShutterEx(1,2,27,27,2);                        %   Set external and internal shutter to open
+ret = AndorShutDown;
+if ret~=20002
+    disp('Error shutting down camera');
+end
 
 
 
